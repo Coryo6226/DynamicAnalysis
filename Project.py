@@ -12,6 +12,8 @@ try:
 except ImportError:
     import tkinter as tk
     from tkinter import filedialog
+    from tkinter import simpledialog
+ 
 
 try:
     import ttk
@@ -51,24 +53,45 @@ class Toplevel1:
 	def PickFile(self):
 		root = tk.Tk()
 		root.withdraw()
+		global file_path
 		file_path = filedialog.askopenfilename()
 	
-	def DissasFile(self):
-			file_path = filedialog.askopenfilename()			
-			r2 = r2pipe.open(file_path)
-			r2.cmd('aa')
-			print(r2.cmd("afl"))
-			print(r2.cmdj("aflj"))
+
+	
+	def DissasFile(self):			
+			R2 = r2pipe.open(file_path) # Open r2 with file
+			R2.cmd('aaaa')              # Analyze file
+			R2.cmd('pdf @@f > outR.txt')     # Write disassembly for each function to out file                 
 			
+
+			with open ("outR.txt", 'r') as f:
+				self.Display.insert(1.0, f.read())	
+	
 	def DebugFile(self):
-			file_path = filedialog.askopenfilename()
+			Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Set Breakpoint")
 			r2=r2pipe.open(file_path)
-			for a in range(1,10):
+			r2.cmd("e dbg.profile=test.rr2")
+			r2.cmd("doo")
+			r2.cmd("db" + " "+ Breakpoint)
+			r2.cmd("dc > outB.txt")
+			
+			with open ("outB.txt", 'r') as f:
+				self.Display.insert(1.0, f.read())	
+	
+			
+			def step():
 				r2.cmd("ds")
-				print(r2.cmdj("drj"))
-				
+				r2.cmd("sr pc")
+			
+			while True:
+				dissas = []
+				while True:
+					step()
+					current_instruction = r2.cmdj("pdj 1")[0]
+			#with open (*DEBUG, 'r') as f:
+			#	self.Display.insert(1.0, f.read())
 		
-	def __init__(self, top=None):
+	def __init__(self, top=None):	
 		'''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
 		_bgcolor = '#d9d9d9'  # X11 color: 'gray85'
@@ -129,6 +152,19 @@ class Toplevel1:
 		self.Frame1.configure(borderwidth="2")
 		self.Frame1.configure(relief="groove")
 		self.Frame1.configure(background="#d9d9d9")
+		
+		
+		self.Display = tk.Text(self.Frame1)
+		self.Display.place(relx=0.0, rely=0.0, relheight=0.992, relwidth=0.991)
+		self.Display.configure(background="white")
+		self.Display.configure(font="TkTextFont")
+		self.Display.configure(foreground="black")
+		self.Display.configure(highlightbackground="#d9d9d9")
+		self.Display.configure(highlightcolor="black")
+		self.Display.configure(insertbackground="black")
+		self.Display.configure(selectbackground="blue")
+		self.Display.configure(selectforeground="white")
+		self.Display.configure(wrap="word")
 
 if __name__ == '__main__':
     vp_start_gui()
