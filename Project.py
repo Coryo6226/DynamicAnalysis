@@ -7,6 +7,11 @@
 
 import sys
 import r2pipe
+import ctypes
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
+
 try:
     import Tkinter as tk
 except ImportError:
@@ -24,152 +29,310 @@ except ImportError:
 
 import Project_support
 
-def vp_start_gui():
-    '''Starting point when module is the main routine.'''
-    global val, w, root
-    root = tk.Tk()
-    top = Toplevel1 (root)
-    Project_support.init(root, top)
-    root.mainloop()
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+        
+if is_admin():
 
-w = None
-def create_Toplevel1(rt, *args, **kwargs):
-    '''Starting point when module is imported by another module.
-       Correct form of call: 'create_Toplevel1(root, *args, **kwargs)' .'''
-    global w, w_win, root
-    #rt = root
-    root = rt
-    w = tk.Toplevel (root)
-    top = Toplevel1 (w)
-    Project_support.init(w, top, *args, **kwargs)
-    return (w, top)
-
-def destroy_Toplevel1():
-    global w
-    w.destroy()
-    w = None
-
-class Toplevel1:
-	def PickFile(self):
+	def vp_start_gui():
+		'''Starting point when module is the main routine.'''
+		global val, w, root
 		root = tk.Tk()
-		root.withdraw()
-		global file_path
-		file_path = filedialog.askopenfilename()
-	
+		top = Toplevel1 (root)
+		Project_support.init(root, top)
+		root.mainloop()
 
-	
+	w = None
+	def create_Toplevel1(rt, *args, **kwargs):
+		'''Starting point when module is imported by another module.
+		   Correct form of call: 'create_Toplevel1(root, *args, **kwargs)' .'''
+		global w, w_win, root
+		#rt = root
+		root = rt
+		w = tk.Toplevel (root)
+		top = Toplevel1 (w)
+		Project_support.init(w, top, *args, **kwargs)
+		return (w, top)
+
+	def destroy_Toplevel1():
+		global w
+		w.destroy()
+		w = None
+
+	class Toplevel1:
+		def PickFile(self):
+			root = tk.Tk()
+			root.withdraw()
+			global file_path
+			file_path = filedialog.askopenfilename()
+		
+
+		
+		def DissasFile(self):			
+				R2 = r2pipe.open(file_path) # Open r2 with file
+				R2.cmd('aaa')              # Analyze file
+				R2.cmd('pdf @@f > outR.txt')     # Write disassembly for each function to out file                 
+				
+
+				with open ("outR.txt", 'r') as f:
+					self.Display.insert(1.0, f.read())	
+		
+		def DebugFile(self):
+				Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Set Breakpoint")
+				r2=r2pipe.open(file_path)
+				r2.cmd("e dbg.profile=test.rr2")
+				r2.cmd("doo")
+				r2.cmd("db" + " "+ Breakpoint)
+				r2.cmd("dc > outB.txt")
+				#code = outB.txt
+				#get_lexer_for_filename('outB.txt')
+				#print(highlight(code, PythonLexer(), HtmlFormatter()))
+				
+				with open ("outB.txt", 'r') as f:
+					self.Display.insert(1.0, f.read())	
+		
+				
+			#	def step():
+			#		r2.cmd("ds")
+			#		r2.cmd("sr pc")
+				
+			#	while True:
+			#		dissas = []
+			#		while True:
+			#			step()
+			#			current_instruction = r2.cmdj("pdj 1")[0]
+				#with open (*DEBUG, 'r') as f:
+				#	self.Display.insert(1.0, f.read())
+			
+		def __init__(self, top=None):	
+			'''This class configures and populates the toplevel window.
+			   top is the toplevel containing window.'''
+			_bgcolor = '#d9d9d9'  # X11 color: 'gray85'
+			_fgcolor = '#000000'  # X11 color: 'black'
+			_compcolor = '#d9d9d9' # X11 color: 'gray85'
+			_ana1color = '#d9d9d9' # X11 color: 'gray85'
+			_ana2color = '#ececec' # Closest X11 color: 'gray92'
+
+			top.geometry("589x405+468+138")
+			top.minsize(120, 1)
+			top.maxsize(1540, 845)
+			top.resizable(1,  1)
+			top.title("New Toplevel")
+			top.configure(background="#d9d9d9")
+
+			self.FileBtn = tk.Button(top)
+			self.FileBtn.place(relx=0.051, rely=0.0, height=24, width=47)
+			self.FileBtn.configure(activebackground="#ececec")
+			self.FileBtn.configure(activeforeground="#000000")
+			self.FileBtn.configure(background="#d9d9d9")
+			self.FileBtn.configure(disabledforeground="#a3a3a3")
+			self.FileBtn.configure(foreground="#000000")
+			self.FileBtn.configure(highlightbackground="#d9d9d9")
+			self.FileBtn.configure(highlightcolor="black")
+			self.FileBtn.configure(pady="0")
+			self.FileBtn.configure(text='''File''')
+			self.FileBtn.configure(command=self.PickFile);
+
+			self.DissasBtn = tk.Button(top)
+			self.DissasBtn.place(relx=0.424, rely=0.0, height=24, width=77)
+			self.DissasBtn.configure(activebackground="#ececec")
+			self.DissasBtn.configure(activeforeground="#000000")
+			self.DissasBtn.configure(background="#d9d9d9")
+			self.DissasBtn.configure(disabledforeground="#a3a3a3")
+			self.DissasBtn.configure(foreground="#000000")
+			self.DissasBtn.configure(highlightbackground="#d9d9d9")
+			self.DissasBtn.configure(highlightcolor="black")
+			self.DissasBtn.configure(pady="0")
+			self.DissasBtn.configure(text='''Dissasemble''')
+			self.DissasBtn.configure(command=self.DissasFile);
+
+			self.DebugBtn = tk.Button(top)
+			self.DebugBtn.place(relx=0.798, rely=0.0, height=24, width=47)
+			self.DebugBtn.configure(activebackground="#ececec")
+			self.DebugBtn.configure(activeforeground="#000000")
+			self.DebugBtn.configure(background="#d9d9d9")
+			self.DebugBtn.configure(disabledforeground="#a3a3a3")
+			self.DebugBtn.configure(foreground="#000000")
+			self.DebugBtn.configure(highlightbackground="#d9d9d9")
+			self.DebugBtn.configure(highlightcolor="black")
+			self.DebugBtn.configure(pady="0")
+			self.DebugBtn.configure(text='''Debug''')
+			self.DebugBtn.configure(command=self.DebugFile);
+
+			self.Frame1 = tk.Frame(top)
+			self.Frame1.place(relx=0.0, rely=0.044, relheight=0.926, relwidth=0.983)
+			self.Frame1.configure(relief='groove')
+			self.Frame1.configure(borderwidth="2")
+			self.Frame1.configure(relief="groove")
+			self.Frame1.configure(background="#d9d9d9")
+			
+			
+			self.Display = tk.Text(self.Frame1)
+			self.Display.place(relx=0.0, rely=0.0, relheight=0.992, relwidth=0.991)
+			self.Display.configure(background="white")
+			self.Display.configure(font="TkTextFont")
+			self.Display.configure(foreground="black")
+			self.Display.configure(highlightbackground="#d9d9d9")
+			self.Display.configure(highlightcolor="black")
+			self.Display.configure(insertbackground="black")
+			self.Display.configure(selectbackground="blue")
+			self.Display.configure(selectforeground="white")
+			self.Display.configure(wrap="word")
+
+	if __name__ == '__main__':
+		vp_start_gui()
+
+else:
+    # Re-run the program with admin rights
+	ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+
+	def vp_start_gui():
+			'''Starting point when module is the main routine.'''
+			global val, w, root
+			root = tk.Tk()
+			top = Toplevel1 (root)
+			Project_support.init(root, top)
+			root.mainloop()
+
+	w = None
+	def create_Toplevel1(rt, *args, **kwargs):
+			'''Starting point when module is imported by another module.
+			   Correct form of call: 'create_Toplevel1(root, *args, **kwargs)' .'''
+			global w, w_win, root
+			#rt = root
+			root = rt
+			w = tk.Toplevel (root)
+			top = Toplevel1 (w)
+			Project_support.init(w, top, *args, **kwargs)
+			return (w, top)
+
+	def destroy_Toplevel1():
+			global w
+			w.destroy()
+			w = None
+
+	class Toplevel1:
+			def PickFile(self):
+				root = tk.Tk()
+				root.withdraw()
+				global file_path
+				file_path = filedialog.askopenfilename()
+			
+
+			
 	def DissasFile(self):			
-			R2 = r2pipe.open(file_path) # Open r2 with file
-			R2.cmd('aaaa')              # Analyze file
-			R2.cmd('pdf @@f > outR.txt')     # Write disassembly for each function to out file                 
-			
+					R2 = r2pipe.open(file_path) # Open r2 with file
+					R2.cmd('aaaa')              # Analyze file
+					R2.cmd('pdf @@f > outR.txt')     # Write disassembly for each function to out file                 
+					
 
-			with open ("outR.txt", 'r') as f:
-				self.Display.insert(1.0, f.read())	
-	
+					with open ("outR.txt", 'r') as f:
+						self.Display.insert(1.0, f.read())	
+			
 	def DebugFile(self):
-			Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Set Breakpoint")
-			r2=r2pipe.open(file_path)
-			r2.cmd("e dbg.profile=test.rr2")
-			r2.cmd("doo")
-			r2.cmd("db" + " "+ Breakpoint)
-			r2.cmd("dc > outB.txt")
+					Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Set Breakpoint")
+					r2=r2pipe.open(file_path)
+					r2.cmd("e dbg.profile=test.rr2")
+					r2.cmd("doo")
+					r2.cmd("db" + " "+ Breakpoint)
+					r2.cmd("dc > outB.txt")
+					
+					with open ("outB.txt", 'r') as f:
+						self.Display.insert(1.0, f.read())	
 			
-			with open ("outB.txt", 'r') as f:
-				self.Display.insert(1.0, f.read())	
-	
-			
-			def step():
-				r2.cmd("ds")
-				r2.cmd("sr pc")
-			
-			while True:
-				dissas = []
-				while True:
-					step()
-					current_instruction = r2.cmdj("pdj 1")[0]
-			#with open (*DEBUG, 'r') as f:
-			#	self.Display.insert(1.0, f.read())
-		
+					
+					def step():
+						r2.cmd("ds")
+						r2.cmd("sr pc")
+					
+					while True:
+						dissas = []
+						while True:
+							step()
+							current_instruction = r2.cmdj("pdj 1")[0]
+					#with open (*DEBUG, 'r') as f:
+					#	self.Display.insert(1.0, f.read())
+				
 	def __init__(self, top=None):	
-		'''This class configures and populates the toplevel window.
-           top is the toplevel containing window.'''
-		_bgcolor = '#d9d9d9'  # X11 color: 'gray85'
-		_fgcolor = '#000000'  # X11 color: 'black'
-		_compcolor = '#d9d9d9' # X11 color: 'gray85'
-		_ana1color = '#d9d9d9' # X11 color: 'gray85'
-		_ana2color = '#ececec' # Closest X11 color: 'gray92'
+				'''This class configures and populates the toplevel window.
+				   top is the toplevel containing window.'''
+				_bgcolor = '#d9d9d9'  # X11 color: 'gray85'
+				_fgcolor = '#000000'  # X11 color: 'black'
+				_compcolor = '#d9d9d9' # X11 color: 'gray85'
+				_ana1color = '#d9d9d9' # X11 color: 'gray85'
+				_ana2color = '#ececec' # Closest X11 color: 'gray92'
 
-		top.geometry("589x405+468+138")
-		top.minsize(120, 1)
-		top.maxsize(1540, 845)
-		top.resizable(1,  1)
-		top.title("New Toplevel")
-		top.configure(background="#d9d9d9")
+				top.geometry("589x405+468+138")
+				top.minsize(120, 1)
+				top.maxsize(1540, 845)
+				top.resizable(1,  1)
+				top.title("New Toplevel")
+				top.configure(background="#d9d9d9")
 
-		self.FileBtn = tk.Button(top)
-		self.FileBtn.place(relx=0.051, rely=0.0, height=24, width=47)
-		self.FileBtn.configure(activebackground="#ececec")
-		self.FileBtn.configure(activeforeground="#000000")
-		self.FileBtn.configure(background="#d9d9d9")
-		self.FileBtn.configure(disabledforeground="#a3a3a3")
-		self.FileBtn.configure(foreground="#000000")
-		self.FileBtn.configure(highlightbackground="#d9d9d9")
-		self.FileBtn.configure(highlightcolor="black")
-		self.FileBtn.configure(pady="0")
-		self.FileBtn.configure(text='''File''')
-		self.FileBtn.configure(command=self.PickFile);
+				self.FileBtn = tk.Button(top)
+				self.FileBtn.place(relx=0.051, rely=0.0, height=24, width=47)
+				self.FileBtn.configure(activebackground="#ececec")
+				self.FileBtn.configure(activeforeground="#000000")
+				self.FileBtn.configure(background="#d9d9d9")
+				self.FileBtn.configure(disabledforeground="#a3a3a3")
+				self.FileBtn.configure(foreground="#000000")
+				self.FileBtn.configure(highlightbackground="#d9d9d9")
+				self.FileBtn.configure(highlightcolor="black")
+				self.FileBtn.configure(pady="0")
+				self.FileBtn.configure(text='''File''')
+				self.FileBtn.configure(command=self.PickFile);
 
-		self.DissasBtn = tk.Button(top)
-		self.DissasBtn.place(relx=0.424, rely=0.0, height=24, width=77)
-		self.DissasBtn.configure(activebackground="#ececec")
-		self.DissasBtn.configure(activeforeground="#000000")
-		self.DissasBtn.configure(background="#d9d9d9")
-		self.DissasBtn.configure(disabledforeground="#a3a3a3")
-		self.DissasBtn.configure(foreground="#000000")
-		self.DissasBtn.configure(highlightbackground="#d9d9d9")
-		self.DissasBtn.configure(highlightcolor="black")
-		self.DissasBtn.configure(pady="0")
-		self.DissasBtn.configure(text='''Dissasemble''')
-		self.DissasBtn.configure(command=self.DissasFile);
+				self.DissasBtn = tk.Button(top)
+				self.DissasBtn.place(relx=0.424, rely=0.0, height=24, width=77)
+				self.DissasBtn.configure(activebackground="#ececec")
+				self.DissasBtn.configure(activeforeground="#000000")
+				self.DissasBtn.configure(background="#d9d9d9")
+				self.DissasBtn.configure(disabledforeground="#a3a3a3")
+				self.DissasBtn.configure(foreground="#000000")
+				self.DissasBtn.configure(highlightbackground="#d9d9d9")
+				self.DissasBtn.configure(highlightcolor="black")
+				self.DissasBtn.configure(pady="0")
+				self.DissasBtn.configure(text='''Dissasemble''')
+				self.DissasBtn.configure(command=self.DissasFile);
 
-		self.DebugBtn = tk.Button(top)
-		self.DebugBtn.place(relx=0.798, rely=0.0, height=24, width=47)
-		self.DebugBtn.configure(activebackground="#ececec")
-		self.DebugBtn.configure(activeforeground="#000000")
-		self.DebugBtn.configure(background="#d9d9d9")
-		self.DebugBtn.configure(disabledforeground="#a3a3a3")
-		self.DebugBtn.configure(foreground="#000000")
-		self.DebugBtn.configure(highlightbackground="#d9d9d9")
-		self.DebugBtn.configure(highlightcolor="black")
-		self.DebugBtn.configure(pady="0")
-		self.DebugBtn.configure(text='''Debug''')
-		self.DebugBtn.configure(command=self.DebugFile);
+				self.DebugBtn = tk.Button(top)
+				self.DebugBtn.place(relx=0.798, rely=0.0, height=24, width=47)
+				self.DebugBtn.configure(activebackground="#ececec")
+				self.DebugBtn.configure(activeforeground="#000000")
+				self.DebugBtn.configure(background="#d9d9d9")
+				self.DebugBtn.configure(disabledforeground="#a3a3a3")
+				self.DebugBtn.configure(foreground="#000000")
+				self.DebugBtn.configure(highlightbackground="#d9d9d9")
+				self.DebugBtn.configure(highlightcolor="black")
+				self.DebugBtn.configure(pady="0")
+				self.DebugBtn.configure(text='''Debug''')
+				self.DebugBtn.configure(command=self.DebugFile);
 
-		self.Frame1 = tk.Frame(top)
-		self.Frame1.place(relx=0.0, rely=0.044, relheight=0.926, relwidth=0.983)
-		self.Frame1.configure(relief='groove')
-		self.Frame1.configure(borderwidth="2")
-		self.Frame1.configure(relief="groove")
-		self.Frame1.configure(background="#d9d9d9")
-		
-		
-		self.Display = tk.Text(self.Frame1)
-		self.Display.place(relx=0.0, rely=0.0, relheight=0.992, relwidth=0.991)
-		self.Display.configure(background="white")
-		self.Display.configure(font="TkTextFont")
-		self.Display.configure(foreground="black")
-		self.Display.configure(highlightbackground="#d9d9d9")
-		self.Display.configure(highlightcolor="black")
-		self.Display.configure(insertbackground="black")
-		self.Display.configure(selectbackground="blue")
-		self.Display.configure(selectforeground="white")
-		self.Display.configure(wrap="word")
+				self.Frame1 = tk.Frame(top)
+				self.Frame1.place(relx=0.0, rely=0.044, relheight=0.926, relwidth=0.983)
+				self.Frame1.configure(relief='groove')
+				self.Frame1.configure(borderwidth="2")
+				self.Frame1.configure(relief="groove")
+				self.Frame1.configure(background="#d9d9d9")
+				
+				
+				self.Display = tk.Text(self.Frame1)
+				self.Display.place(relx=0.0, rely=0.0, relheight=0.992, relwidth=0.991)
+				self.Display.configure(background="white")
+				self.Display.configure(font="TkTextFont")
+				self.Display.configure(foreground="black")
+				self.Display.configure(highlightbackground="#d9d9d9")
+				self.Display.configure(highlightcolor="black")
+				self.Display.configure(insertbackground="black")
+				self.Display.configure(selectbackground="blue")
+				self.Display.configure(selectforeground="white")
+				self.Display.configure(wrap="word")
 
-if __name__ == '__main__':
-    vp_start_gui()
-
-
+	if __name__ == '__main__':
+			vp_start_gui()
 
 
 
