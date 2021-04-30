@@ -27,9 +27,11 @@ def init(top, gui, *args, **kwargs):
 
 def destroy_window():
     # Function which closes the window.
-    global top_level
-    top_level.destroy()
-    top_level = None
+	os.remove("outR1.txt")
+	os.remove("outR.txt")
+	global top_level
+	top_level.destroy()
+	top_level = None
 
 if __name__ == '__main__':
     import Project

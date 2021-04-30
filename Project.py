@@ -28,7 +28,6 @@ except ImportError:
 
 import Project_support
 
-check = "yellow"
 
 def is_admin():
     try:
@@ -68,47 +67,48 @@ if is_admin():
 				def myfunc():
 						global file_path
 						file_path = "null"
-						#global check 
-						#check = "red"
+
 					
-				myfunc()
+				myfunc()    #Initialising the file_path variable
 				
-				def PickFile(self):
+				def PickFile(self):		#Creating pick file function
 					root = tk.Tk()
 					root.withdraw()
 					global file_path
-					file_path = filedialog.askopenfilename()
-					global r2
-					r2 = r2pipe.open(file_path)
+					file_path = filedialog.askopenfilename()    #file_path = to file chosen in file explorer
 						
+					if file_path == "null":
+								ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
 								
-			#	def myproc():
-			#		global r2
-			#		r2 = r2pipe.open(file_path) # Open r2 with file
+					else:
+									global r2
+									r2 = r2pipe.open(file_path)
+									r2.cmd('aaa; pdf @@f > outD.txt; dm > outM.txt; pxr @ esp > outS.txt; dr > outR.txt')    #r2 functions to run if file_path isnt empty                  
+											
+									with open ("outD.txt", 'r') as f:
+											self.Display1.insert(1.0, f.read())
+												  
+									with open ("outM.txt", 'r') as f:
+											self.Display4.insert(1.0, f.read())	
+												
+									with open ("outS.txt", 'r') as f:
+											self.Display3.insert(1.0, f.read())
+											
+									with open ("outR.txt", 'r') as f:
+											self.Display5.insert(1.0, f.read())
+
 					
 			
 						
+			
 				
-			#	myproc()	
-
-				
-				def DissasFile(self):
-						if file_path != "null":
-								r2.cmd('aaa')              # Analyze file
-								r2.cmd('pdf @@f > outD.txt')     # Write disassembly for each function to out file                 
-							
-
-								with open ("outD.txt", 'r') as f:
-									self.Display1.insert(1.0, f.read())	
-						else:
-									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
 									
 									
 									
 									
-				def DebugFile(self):
+				def DebugFile(self):				#Initalising debug function
 					if file_path != "null":
-							r2.cmd("doo")
+							r2.cmd("doo")			#r2 command to set file to debug mode
 							
 					else:
 						ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
@@ -117,48 +117,202 @@ if is_admin():
 				
 				
 				
-				def Breakpoint(self):
+				def Breakpoint(self):				#Initalising breakpoint function
 						if file_path != "null":
-							Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Set Breakpoint")
-							r2.cmd("doo")
-							r2.cmd("db" + Breakpoint)
+							Breakpoint = "set"
+							Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Set Breakpoint")  #breakpoint is = to string entered in prompt
+							if Breakpoint != "set":
+								r2.cmd("db" + " "+ Breakpoint)
+								r2.cmd("db > outBP.txt")
+								Breakpoint = "set"
+							else:
+								r2.cmd("db > outBP.txt")
+							
+							with open ("outBP.txt", 'r') as f:
+								self.Display5.configure(foreground="brown")
+								self.Display2.insert(1.0, f.read())							
 							
 							
-						#	with open ("outB.txt", 'r') as f:
-						#		self.Display2.insert(1.0, f.read())
 						else:
 									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
 					 
 							
 						
 					
-							
-							
-				def RegFile(self):
-						global check
+				def contFile(self):						#Initalising continue execution function
 						if file_path != "null":
+							r2.cmd('dc > outC.txt') 
 							
 							if os.path.isfile("outR.txt"):   	#check if file exists
+								filesize = os.path.getsize("outR.txt")
+							
+								if filesize == 0:			#If the file exists but dosent have anything in it do this
+									r2.cmd('dr > outR.txt')
+									with open ("outR.txt", 'r') as f:
+										self.Display5.configure(foreground="black")
+										self.Display5.insert(1.0, f.read())
+										os.remove("outR.txt")
+									
+								else: 
+									r2.cmd('dr > OutR1.txt')		#If the file exists but dose have something in it do this
+								
+									with open ("outR1.txt", 'r') as f:
+										self.Display5.configure(foreground="green")
+										self.Display5.insert(1.0, f.read())
+									
+									os.remove("outR1.txt")			
+									os.remove("outR.txt")
+							
+							else:
+								
+								f = open("outR.txt", "x")			#Creates the file 
+								filesize = os.path.getsize("outR.txt")
+								if filesize == 0:					#If the 
+									r2.cmd('dr > outR.txt')
+									
+									with open ("outR.txt", 'r') as f:
+										self.Display5.configure(foreground="black")
+										self.Display5.insert(1.0, f.read())
+
+									
+								else: 
+									r2.cmd('dr > OutR1.txt')
+
+									
+									with open ("outR1.txt", 'r') as f:
+										self.Display5.configure(foreground="yellow")
+										self.Display5.insert(1.0, f.read())
+									
+									os.remove("outR1.txt")
+									os.remove("outR.txt")
+							            
+							
+							if os.path.isfile("outS.txt"):   	#check if file exists
+								filesize = os.path.getsize("outS.txt")
+							
+								if filesize == 0:
+									r2.cmd('pxr @ esp > outS.txt')
+									with open ("outS.txt", 'r') as f:
+										self.Display3.configure(foreground="black")
+										self.Display3.insert(1.0, f.read())
+			
+									
+								else: 
+									r2.cmd('pxr @ esp > outS1.txt')
+									
+									with open ("outS1.txt", 'r') as f:
+										self.Display3.configure(foreground="red")
+										self.Display3.insert(1.0, f.read())
+									
+									os.remove("outS.txt")
+									os.remove("outS1.txt")
+							
+							else:
+								
+								f = open("outS.txt", "x")
+								filesize = os.path.getsize("outS.txt")
+								if filesize == 0:
+									r2.cmd('pxr @ esp > outS.txt')
+									
+									with open ("outS.txt", 'r') as f:
+										self.Display3.configure(foreground="black")
+										self.Display3.insert(1.0, f.read())
+									
+									
+								else: 
+									r2.cmd('pxr @ esp > OutS1.txt')
+			
+									
+									with open ("outS1.txt", 'r') as f:
+										self.Display3.configure(foreground="yellow")
+										self.Display3.insert(1.0, f.read())
+									
+									os.remove("outM1.txt")
+									os.remove("outM.txt")
+									
+									
+							if os.path.isfile("outM.txt"):   	#check if file exists
+								filesize = os.path.getsize("outM.txt")
+							
+								if filesize == 0:
+									r2.cmd('dm > outM.txt')
+									with open ("outM.txt", 'r') as f:
+										self.Display4.configure(foreground="black")
+										self.Display4.insert(1.0, f.read())
+			
+									
+								else: 
+									r2.cmd('dm > outM1.txt')
+									
+									with open ("outM1.txt", 'r') as f:
+										self.Display4.configure(foreground="red")
+										self.Display4.insert(1.0, f.read())
+									
+									os.remove("outM.txt")
+									os.remove("outM1.txt")
+							
+							else:
+								
+								f = open("outM.txt", "x")
+								filesize = os.path.getsize("outM.txt")
+								if filesize == 0:
+									r2.cmd('dm  > outM.txt')
+									
+									with open ("outM.txt", 'r') as f:
+										self.Display4.configure(foreground="black")
+										self.Display4.insert(1.0, f.read())
+									
+									
+								else: 
+									r2.cmd('dm > OutM1.txt')
+			
+									
+									with open ("outM1.txt", 'r') as f:
+										self.Display4.configure(foreground="yellow")
+										self.Display4.insert(1.0, f.read())
+									
+									os.remove("outM1.txt")
+									os.remove("outM.txt")				  
+							
+
+							with open ("outC.txt", 'r') as f:
+									self.Display2.insert(1.0, f.read())
+			#				with open ("outM.txt", 'r') as f:
+			#						self.Display4.insert(1.0, f.read())		
+															
+								
+						else:
+									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
+									
+									
+				def StepFile(self):
+					if file_path != "null":
+						r2.cmd('ds > outST.txt')                     
+							
+						with open ("outST.txt", 'r') as f:
+							self.Display2.insert(1.0, f.read())
+							
+						if os.path.isfile("outR.txt"):   	#check if file exists
 								filesize = os.path.getsize("outR.txt")
 							
 								if filesize == 0:
 									r2.cmd('dr > outR.txt')
 									with open ("outR.txt", 'r') as f:
 										self.Display5.configure(foreground="black")
-										self.Display1.insert(1.0, f.read())
-									#os.remove("outR.txt")
+										self.Display5.insert(1.0, f.read())
+										os.remove("outR.txt")
 									
 								else: 
 									r2.cmd('dr > OutR1.txt')
-									
+								
 									with open ("outR1.txt", 'r') as f:
-										self.Display5.configure(foreground="red")
+										self.Display5.configure(foreground="green")
 										self.Display5.insert(1.0, f.read())
 									
 									os.remove("outR1.txt")
 									os.remove("outR.txt")
 							
-							else:
+						else:
 								
 								f = open("outR.txt", "x")
 								filesize = os.path.getsize("outR.txt")
@@ -166,69 +320,132 @@ if is_admin():
 									r2.cmd('dr > outR.txt')
 									
 									with open ("outR.txt", 'r') as f:
-										self.Display5.configure(foreground="black")
+										self.Display5.configure(foreground="purple")
 										self.Display5.insert(1.0, f.read())
-									#os.remove("outR.txt")
+
 									
 								else: 
 									r2.cmd('dr > OutR1.txt')
-									check = "red"
-									#os.remove("outR.txt")
+
 									
 									with open ("outR1.txt", 'r') as f:
-										self.Display5.configure(foreground="yellow")
+										self.Display5.configure(foreground="pink")
 										self.Display5.insert(1.0, f.read())
 									
-									#os.remove("outR1.txt")
-									#os.remove("outR.txt")
+									os.remove("outR1.txt")
+									os.remove("outR.txt")
+							            
 							
-
+						if os.path.isfile("outS.txt"):   	#check if file exists
+								filesize = os.path.getsize("outS.txt")
 							
+								if filesize == 0:
+									r2.cmd('pxr @ esp > outS.txt')
+									with open ("outS.txt", 'r') as f:
+										self.Display3.configure(foreground="black")
+										self.Display3.insert(1.0, f.read())
+			
+									
+								else: 
+									r2.cmd('pxr @ esp > outS1.txt')
+									
+									with open ("outS1.txt", 'r') as f:
+										self.Display3.configure(foreground="red")
+										self.Display3.insert(1.0, f.read())
+									
+									os.remove("outS.txt")
+									os.remove("outS1.txt")
 							
-						#	with open ("outR.txt", 'r') as f:
-							#		self.Display5.insert(1.0, f.read())	
 						else:
-										ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)	
+								
+								f = open("outS.txt", "x")
+								filesize = os.path.getsize("outS.txt")
+								if filesize == 0:
+									r2.cmd('pxr @ esp > outS.txt')
+									
+									with open ("outS.txt", 'r') as f:
+										self.Display3.configure(foreground="black")
+										self.Display3.insert(1.0, f.read())
 									
 									
+								else: 
+									r2.cmd('pxr @ esp > OutS1.txt')
+			
+									
+									with open ("outS1.txt", 'r') as f:
+										self.Display3.configure(foreground="yellow")
+										self.Display3.insert(1.0, f.read())
+									
+									os.remove("outS1.txt")
+									os.remove("outS.txt")
+						
+						if os.path.isfile("outM.txt"):   	#check if file exists
+								filesize = os.path.getsize("outM.txt")
+							
+								if filesize == 0:
+									r2.cmd('dm > outM.txt')
+									with open ("outM.txt", 'r') as f:
+										self.Display4.configure(foreground="black")
+										self.Display4.insert(1.0, f.read())
+			
+									
+								else: 
+									r2.cmd('dm > outM1.txt')
+									
+									with open ("outM1.txt", 'r') as f:
+										self.Display4.configure(foreground="red")
+										self.Display4.insert(1.0, f.read())
+									
+									os.remove("outM.txt")
+									os.remove("outM1.txt")
+							
+						else:
+								
+								f = open("outM.txt", "x")
+								filesize = os.path.getsize("outM.txt")
+								if filesize == 0:
+									r2.cmd('dm  > outM.txt')
+									
+									with open ("outM.txt", 'r') as f:
+										self.Display4.configure(foreground="blue")
+										self.Display4.insert(1.0, f.read())
+									
+									
+								else: 
+									r2.cmd('dm > OutM1.txt')
+			
+									
+									with open ("outM1.txt", 'r') as f:
+										self.Display4.configure(foreground="yellow")
+										self.Display4.insert(1.0, f.read())
+									
+									os.remove("outM1.txt")
+									os.remove("outM.txt")				  			  	
+							
+					else:
+						ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
 					
-									
-				def MemFile(self):
-						if file_path != "null":
-						#	r2.cmd('aaa')              # Analyze file
-							r2.cmd('dm > outM.txt')     # Write disassembly for each function to out file                 
-							with open ("outM.txt", 'r') as f:
-									self.Display4.insert(1.0, f.read())	
-						else:
-									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)				
-						
-						
-				def StackFile(self):
-						if file_path != "null":
-						#	r2.cmd('aaa')              # Analyze file
-							r2.cmd('pxr @ esp > outS.txt')     # Write disassembly for each function to out file                 
-							
 
-							with open ("outS.txt", 'r') as f:
-									self.Display3.insert(1.0, f.read())	
-						else:
-									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
-			
-			
-			
-							
-				def contFile(self):
+				
+				def DelBP(self):
 						if file_path != "null":
-							#R2.cmd("doo")
-							r2.cmd('dc > outC.txt')              # Analyze file
-										  
+							Breakpoint = "set"
+							Breakpoint = simpledialog.askstring(title="Breakpoint", prompt="Delete Breakpoint")
+							if Breakpoint != "set":
+								r2.cmd("db" + " "+ "-"+ Breakpoint)
+								r2.cmd("db > outBP.txt")
+								Breakpoint = "set"
+							else:
+								r2.cmd("db > outBP.txt")
 							
-
-							with open ("outC.txt", 'r') as f:
-									self.Display2.insert(1.0, f.read())	
+							with open ("outBP.txt", 'r') as f:
+								self.Display5.configure(foreground="brown")
+								self.Display2.insert(1.0, f.read())							
+							
+							
+					
 						else:
-									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)
-									
+									ctypes.windll.user32.MessageBoxW(0, "Please choose a file!", "ERROR", 0)														
 									
 				
 				def ClearFile(self):
@@ -248,13 +465,14 @@ if is_admin():
 					_compcolor = '#d9d9d9' # X11 color: 'gray85'
 					_ana1color = '#d9d9d9' # X11 color: 'gray85'
 					_ana2color = '#ececec' # Closest X11 color: 'gray92'
+					
 
 					top.geometry("760x528+405+109")
 					top.minsize(120, 1)
 					top.maxsize(1540, 845)
 					top.resizable(1,  1)
-					top.title("New Toplevel")
-					top.configure(background="#d9d9d9")
+					top.title("Dynamic Analysis Tool")
+					top.configure(background="#b5c1fd")
 					top.configure(highlightbackground="#d9d9d9")
 					top.configure(highlightcolor="black")
 
@@ -262,33 +480,21 @@ if is_admin():
 					self.FileBtn.place(relx=0.0, rely=0.0, height=24, width=47)
 					self.FileBtn.configure(activebackground="#ececec")
 					self.FileBtn.configure(activeforeground="#000000")
-					self.FileBtn.configure(background="#d9d9d9")
+					self.FileBtn.configure(background="#c6c6ff")
 					self.FileBtn.configure(disabledforeground="#a3a3a3")
 					self.FileBtn.configure(foreground="#000000")
-					self.FileBtn.configure(highlightbackground="#d9d9d9")
+					self.FileBtn.configure(highlightbackground="#c6c6ff")
 					self.FileBtn.configure(highlightcolor="black")
 					self.FileBtn.configure(pady="0")
 					self.FileBtn.configure(text='''File''')
 					self.FileBtn.configure(command=self.PickFile);
 
-					self.DissasBtn = tk.Button(top)
-					self.DissasBtn.place(relx=0.053, rely=0.0, height=24, width=87)
-					self.DissasBtn.configure(activebackground="#ececec")
-					self.DissasBtn.configure(activeforeground="#000000")
-					self.DissasBtn.configure(background="#d9d9d9")
-					self.DissasBtn.configure(disabledforeground="#a3a3a3")
-					self.DissasBtn.configure(foreground="#000000")
-					self.DissasBtn.configure(highlightbackground="#d9d9d9")
-					self.DissasBtn.configure(highlightcolor="black")
-					self.DissasBtn.configure(pady="0")
-					self.DissasBtn.configure(text='''Dissasemble''')
-					self.DissasBtn.configure(command=self.DissasFile);
 
 					self.DebugBtn = tk.Button(top)
-					self.DebugBtn.place(relx=0.632, rely=0.0, height=24, width=57)
+					self.DebugBtn.place(relx=0.08, rely=0.0, height=24, width=77)
 					self.DebugBtn.configure(activebackground="#ececec")
 					self.DebugBtn.configure(activeforeground="#000000")
-					self.DebugBtn.configure(background="#d9d9d9")
+					self.DebugBtn.configure(background="#c6c6ff")
 					self.DebugBtn.configure(disabledforeground="#a3a3a3")
 					self.DebugBtn.configure(foreground="#000000")
 					self.DebugBtn.configure(highlightbackground="#d9d9d9")
@@ -298,11 +504,26 @@ if is_admin():
 					self.DebugBtn.configure(command=self.DebugFile);
 					
 					
+					self.DelBtn = tk.Button(top)
+					self.DelBtn.place(relx=0.34, rely=0.0, height=24, width=114)
+					self.DelBtn.configure(activebackground="#ececec")
+					self.DelBtn.configure(activeforeground="#000000")
+					self.DelBtn.configure(background="#c6c6ff")
+					self.DelBtn.configure(disabledforeground="#a3a3a3")
+					self.DelBtn.configure(foreground="#000000")
+					self.DelBtn.configure(highlightbackground="#d9d9d9")
+					self.DelBtn.configure(highlightcolor="black")
+					self.DelBtn.configure(pady="0")
+					self.DelBtn.configure(text='''Remove Breakpoint''')
+					self.DelBtn.configure(command=self.DelBP);					
+					
+					
+					
 					self.BreakpointBtn = tk.Button(top)
-					self.BreakpointBtn.place(relx=0.382, rely=0.0, height=24, width=87)
+					self.BreakpointBtn.place(relx=0.2, rely=0.0, height=24, width=87)
 					self.BreakpointBtn.configure(activebackground="#ececec")
 					self.BreakpointBtn.configure(activeforeground="#000000")
-					self.BreakpointBtn.configure(background="#d9d9d9")
+					self.BreakpointBtn.configure(background="#c6c6ff")
 					self.BreakpointBtn.configure(disabledforeground="#a3a3a3")
 					self.BreakpointBtn.configure(foreground="#000000")
 					self.BreakpointBtn.configure(highlightbackground="#d9d9d9")
@@ -311,24 +532,12 @@ if is_admin():
 					self.BreakpointBtn.configure(text='''Breakpoint''')
 					self.BreakpointBtn.configure(command=self.Breakpoint);
 
-					self.RegBtn = tk.Button(top)
-					self.RegBtn.place(relx=0.158, rely=0.0, height=24, width=67)
-					self.RegBtn.configure(activebackground="#ececec")
-					self.RegBtn.configure(activeforeground="#000000")
-					self.RegBtn.configure(background="#d9d9d9")
-					self.RegBtn.configure(disabledforeground="#a3a3a3")
-					self.RegBtn.configure(foreground="#000000")
-					self.RegBtn.configure(highlightbackground="#d9d9d9")
-					self.RegBtn.configure(highlightcolor="black")
-					self.RegBtn.configure(pady="0")
-					self.RegBtn.configure(text='''Registers''')
-					self.RegBtn.configure(command=self.RegFile);
 					
 					self.contBtn = tk.Button(top)
-					self.contBtn.place(relx=0.487, rely=0.0, height=24, width=117)
+					self.contBtn.place(relx=0.52, rely=0.0, height=24, width=117)
 					self.contBtn.configure(activebackground="#ececec")
 					self.contBtn.configure(activeforeground="#000000")
-					self.contBtn.configure(background="#d9d9d9")
+					self.contBtn.configure(background="#c6c6ff")
 					self.contBtn.configure(disabledforeground="#a3a3a3")
 					self.contBtn.configure(foreground="#000000")
 					self.contBtn.configure(highlightbackground="#d9d9d9")
@@ -336,41 +545,31 @@ if is_admin():
 					self.contBtn.configure(pady="0")
 					self.contBtn.configure(text='''Continue Execution''')
 					self.contBtn.configure(command=self.contFile);
+					
+					
+					self.BtnStep = tk.Button(top)
+					self.BtnStep.place(relx=0.7, rely=0.0, height=24, width=47)
+					self.BtnStep.configure(activebackground="#ececec")
+					self.BtnStep.configure(activeforeground="#000000")
+					self.BtnStep.configure(background="#c6c6ff")
+					self.BtnStep.configure(disabledforeground="#a3a3a3")
+					self.BtnStep.configure(foreground="#000000")
+					self.BtnStep.configure(highlightbackground="#d9d9d9")
+					self.BtnStep.configure(highlightcolor="black")
+					self.BtnStep.configure(pady="0")
+					self.BtnStep.configure(text='''Step''')
+					self.BtnStep.configure(command=self.StepFile);
 
-					self.StackBtn = tk.Button(top)
-					self.StackBtn.place(relx=0.237, rely=0.0, height=24, width=57)
-					self.StackBtn.configure(activebackground="#ececec")
-					self.StackBtn.configure(activeforeground="#000000")
-					self.StackBtn.configure(background="#d9d9d9")
-					self.StackBtn.configure(disabledforeground="#a3a3a3")
-					self.StackBtn.configure(foreground="#000000")
-					self.StackBtn.configure(highlightbackground="#d9d9d9")
-					self.StackBtn.configure(highlightcolor="black")
-					self.StackBtn.configure(pady="0")
-					self.StackBtn.configure(text='''Stack''')
-					self.StackBtn.configure(command=self.StackFile);
 
-					self.MemBtn = tk.Button(top)
-					self.MemBtn.place(relx=0.303, rely=0.0, height=24, width=67)
-					self.MemBtn.configure(activebackground="#ececec")
-					self.MemBtn.configure(activeforeground="#000000")
-					self.MemBtn.configure(background="#d9d9d9")
-					self.MemBtn.configure(disabledforeground="#a3a3a3")
-					self.MemBtn.configure(foreground="#000000")
-					self.MemBtn.configure(highlightbackground="#d9d9d9")
-					self.MemBtn.configure(highlightcolor="black")
-					self.MemBtn.configure(pady="0")
-					self.MemBtn.configure(text='''Memory''')
-					self.MemBtn.configure(command=self.MemFile);
 
 					self.menubar = tk.Menu(top,font="TkMenuFont",bg=_bgcolor,fg=_fgcolor)
 					top.configure(menu = self.menubar)
 
 					self.Registers = tk.Label(top)
-					self.Registers.place(relx=0.696, rely=0.642, height=27, width=96)
+					self.Registers.place(relx=0.733, rely=0.067, height=21, width=54)
 					self.Registers.configure(activebackground="#f9f9f9")
 					self.Registers.configure(activeforeground="black")
-					self.Registers.configure(background="#d9d9d9")
+					self.Registers.configure(background="#b5c1fd")
 					self.Registers.configure(disabledforeground="#a3a3a3")
 					self.Registers.configure(foreground="#000000")
 					self.Registers.configure(highlightbackground="#d9d9d9")
@@ -378,10 +577,10 @@ if is_admin():
 					self.Registers.configure(text='''Registers''')
 
 					self.Stack = tk.Label(top)
-					self.Stack.place(relx=0.732, rely=0.063, height=27, width=44)
+					self.Stack.place(relx=0.75, rely=0.711, height=21, width=34)
 					self.Stack.configure(activebackground="#f9f9f9")
 					self.Stack.configure(activeforeground="black")
-					self.Stack.configure(background="#d9d9d9")
+					self.Stack.configure(background="#b5c1fd")
 					self.Stack.configure(disabledforeground="#a3a3a3")
 					self.Stack.configure(foreground="#000000")
 					self.Stack.configure(highlightbackground="#d9d9d9")
@@ -389,10 +588,10 @@ if is_admin():
 					self.Stack.configure(text='''Stack''')
 					
 					self.Clear = tk.Button(top)
-					self.Clear.place(relx=0.882, rely=0.0, height=24, width=47)
+					self.Clear.place(relx=0.917, rely=0.0, height=24, width=47)
 					self.Clear.configure(activebackground="#ececec")
 					self.Clear.configure(activeforeground="#000000")
-					self.Clear.configure(background="#d9d9d9")
+					self.Clear.configure(background="#b5c1fd")
 					self.Clear.configure(disabledforeground="#a3a3a3")
 					self.Clear.configure(foreground="#000000")
 					self.Clear.configure(highlightbackground="#d9d9d9")
@@ -402,10 +601,10 @@ if is_admin():
 					self.Clear.configure(command=self.ClearFile);
 
 					self.Label1 = tk.Label(top)
-					self.Label1.place(relx=0.724, rely=0.373, height=22, width=54)
+					self.Label1.place(relx=0.733, rely=0.4, height=21, width=54)
 					self.Label1.configure(activebackground="#f9f9f9")
 					self.Label1.configure(activeforeground="black")
-					self.Label1.configure(background="#d9d9d9")
+					self.Label1.configure(background="#b5c1fd")
 					self.Label1.configure(disabledforeground="#a3a3a3")
 					self.Label1.configure(foreground="#000000")
 					self.Label1.configure(highlightbackground="#d9d9d9")
@@ -413,9 +612,8 @@ if is_admin():
 					self.Label1.configure(text='''Memory''')
 
 					self.Message1 = tk.Message(top)
-					self.Message1.place(relx=0.211, rely=0.532, relheight=0.047
-							, relwidth=0.079)
-					self.Message1.configure(background="#d9d9d9")
+					self.Message1.place(relx=0.183, rely=0.489, height=21, width=34)
+					self.Message1.configure(background="#b5c1fd")
 					self.Message1.configure(foreground="#000000")
 					self.Message1.configure(highlightbackground="#d9d9d9")
 					self.Message1.configure(highlightcolor="black")
@@ -423,9 +621,8 @@ if is_admin():
 					self.Message1.configure(width=60)
 
 					self.Message2 = tk.Message(top)
-					self.Message2.place(relx=0.197, rely=0.081, relheight=0.047
-							, relwidth=0.117)
-					self.Message2.configure(background="#d9d9d9")
+					self.Message2.place(relx=0.183, rely=0.067, height=21, width=84)
+					self.Message2.configure(background="#b5c1fd")
 					self.Message2.configure(foreground="#000000")
 					self.Message2.configure(highlightbackground="#d9d9d9")
 					self.Message2.configure(highlightcolor="black")
@@ -433,10 +630,9 @@ if is_admin():
 					self.Message2.configure(width=90)
 
 					self.Display1 = tk.Text(top)
-					self.Display1.place(relx=0.0, rely=0.117, relheight=0.403
-							, relwidth=0.584)
+					self.Display1.place(relx=0.0, rely=0.133, relheight=0.342, relwidth=0.507)
 					self.Display1.configure(background="white")
-					self.Display1.configure(font="TkTextFont")
+					self.Display1.configure(font="-family {Courier New} -size 8")
 					self.Display1.configure(foreground="black")
 					self.Display1.configure(highlightbackground="#d9d9d9")
 					self.Display1.configure(highlightcolor="black")
@@ -446,10 +642,10 @@ if is_admin():
 					self.Display1.configure(wrap="word")
 
 					self.Display2 = tk.Text(top)
-					self.Display2.place(relx=0.0, rely=0.57, relheight=0.403, relwidth=0.584)
+					self.Display2.place(relx=0.0, rely=0.556, relheight=0.453, relwidth=0.507)
 
 					self.Display2.configure(background="white")
-					self.Display2.configure(font="TkTextFont")
+					self.Display2.configure(font="-family {Courier New} -size 8")
 					self.Display2.configure(foreground="black")
 					self.Display2.configure(highlightbackground="#d9d9d9")
 					self.Display2.configure(highlightcolor="black")
@@ -459,10 +655,9 @@ if is_admin():
 					self.Display2.configure(wrap="word")
 
 					self.Display3 = tk.Text(top)
-					self.Display3.place(relx=0.658, rely=0.138, relheight=0.223
-							, relwidth=0.321)
+					self.Display3.place(relx=0.517, rely=0.778, relheight=0.209, relwidth=0.507)
 					self.Display3.configure(background="white")
-					self.Display3.configure(font="TkTextFont")
+					self.Display3.configure(font="-family {Courier New} -size 8")
 					self.Display3.configure(foreground="black")
 					self.Display3.configure(highlightbackground="#d9d9d9")
 					self.Display3.configure(highlightcolor="black")
@@ -472,10 +667,9 @@ if is_admin():
 					self.Display3.configure(wrap="word")
 
 					self.Display4 = tk.Text(top)
-					self.Display4.place(relx=0.658, rely=0.434, relheight=0.184
-							, relwidth=0.336)
+					self.Display4.place(relx=0.517, rely=0.467, relheight=0.231, relwidth=0.49)
 					self.Display4.configure(background="white")
-					self.Display4.configure(font="TkTextFont")
+					self.Display4.configure(font="-family {Courier New} -size 8")
 					self.Display4.configure(foreground="black")
 					self.Display4.configure(highlightbackground="#d9d9d9")
 					self.Display4.configure(highlightcolor="black")
@@ -486,17 +680,19 @@ if is_admin():
 
 
 					self.Display5 = tk.Text(top)
-					self.Display5.place(relx=0.645, rely=0.708, relheight=0.265
-							, relwidth=0.347)
+					self.Display5.place(relx=0.517, rely=0.133, relheight=0.253, relwidth=0.49)
 					self.Display5.configure(background="white")
-					self.Display5.configure(font="TkTextFont")
-					self.Display5.configure(foreground="red")
+					self.Display5.configure(font="-family {Courier New} -size 8")
+					self.Display5.configure(foreground="black")
 					self.Display5.configure(highlightbackground="#d9d9d9")
 					self.Display5.configure(highlightcolor="black")
 					self.Display5.configure(insertbackground="black")
 					self.Display5.configure(selectbackground="blue")
 					self.Display5.configure(selectforeground="white")
 					self.Display5.configure(wrap="word")
+					
+					
+					
 
 		if __name__ == '__main__':
 			vp_start_gui()
